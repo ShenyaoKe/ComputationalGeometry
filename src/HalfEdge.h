@@ -2,7 +2,7 @@
 #include "common.h"
 //#include "Geometry/TriangleMesh.h"
 
-static const size_t cInvalidHDS = -1;
+static const size_t cInvalidHDS = (size_t)-1;
 
 /*
 * Vertex
@@ -61,13 +61,14 @@ public:
 	size_t index;
 	size_t fid;
 	size_t vid;
-
 	// Offset to index of previous/nex/flip edge
 	// previous/nex/flip edge doesn't exist
 	// when (previous/nex/flip == 0)
-	off_t prev_offset, next_offset, flip_offset;
+	ptrdiff_t prev_offset, next_offset, flip_offset;
+
 
 private:
+
 	static size_t uid;
 };
 

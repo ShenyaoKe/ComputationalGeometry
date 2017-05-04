@@ -1,0 +1,8 @@
+#*.h *.hh linguist-language=C++
+
+# Set linguist ignorad file
+x86/* linguist-vendored
+x64/* linguist-vendored
+bin/* linguist-vendored
+include/* linguist-vendored
+lib/* linguist-vendored
