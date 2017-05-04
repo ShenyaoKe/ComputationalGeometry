@@ -7,13 +7,14 @@
 static vector<uint32_t> ptIndices;
 static Delaunay* delaunyMeshPtr = nullptr;
 
+static int winSize = 800;
 static GLuint vao;
 static GLuint vbo, ibo;
 
 void extractIndices(const Delaunay& mesh)
 {
 	ptIndices.clear();
-	mesh.extractTriangles(ptIndices);
+	mesh.extractTriangleIndices(ptIndices);
 	if (!ptIndices.empty())
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -27,10 +28,10 @@ void mouse_button_callback(GLFWwindow* /*window*/, int button, int action, int /
 	{
 		if (delaunyMeshPtr)
 		{
-			if (delaunyMeshPtr->keepInsertion())
+			/*if (delaunyMeshPtr->keepInsertion())
 			{
 				extractIndices(*delaunyMeshPtr);
-			}
+			}*/
 		}
 	}
 }
@@ -38,11 +39,12 @@ void mouse_button_callback(GLFWwindow* /*window*/, int button, int action, int /
 int main(int argc, char* argv[])
 {
 	static std::vector<Vector2f> pts;
-	for (size_t i = 0; i < 100; i++)
+	for (size_t i = 0; i < 20; i++)
 	{
 		pts.emplace_back(float(rand() % 100) / 50.0f - 1.0f, float(rand() % 100) / 50.0f - 1.0f);
 	}
 	pts.push_back(pts[0] * 0.3f + pts[2] * 0.7f);
+	pts.push_back(pts[0] * 0.1f + pts[1] * 0.3f + pts[6] * 0.6f);
 
 	std::vector<Vector2f> renderPts(pts.begin(), pts.end());
 	renderPts.emplace_back(1.0f, -100.0f);
@@ -50,7 +52,7 @@ int main(int argc, char* argv[])
 
 	Delaunay delaunayTriMesh(pts);
 	delaunyMeshPtr = &delaunayTriMesh;
-	delaunayTriMesh.extractTriangles(ptIndices);
+	delaunayTriMesh.extractTriangleIndices(ptIndices);
 
 	GLFWwindow *window = nullptr;
 	const GLubyte *renderer;
@@ -64,7 +66,10 @@ int main(int argc, char* argv[])
 	const char *fragment_shader = "#version 410\n"
 		"out vec4 frag_colour;"
 		"void main () {"
-		"	frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+		"	float r = (gl_PrimitiveID % 13 + 1) / 13.0f;"
+		"	float g = (gl_PrimitiveID % 7 + 1) / 7.0f;"
+		"	float b = (gl_PrimitiveID % 5 + 1) / 5.0f;"
+		"	frag_colour = vec4 (r, g, b, 1.0);"
 		"}";
 
 	/* GL shader objects for vertex and fragment shader [components] */
@@ -78,7 +83,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	window = glfwCreateWindow(640, 640, "Hello Triangle", nullptr, nullptr);
+	window = glfwCreateWindow(winSize, winSize, "Hello Triangle", nullptr, nullptr);
 	if (!window) {
 		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 		glfwTerminate();
@@ -150,7 +155,11 @@ int main(int argc, char* argv[])
 		glUseProgram(shader_programme);
 		glBindVertexArray(vao);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDrawElements(GL_TRIANGLES, ptIndices.size(), GL_UNSIGNED_INT, 0);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);

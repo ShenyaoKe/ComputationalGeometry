@@ -140,9 +140,52 @@ public:
 	//const vert_t* vertFromHe(size_t heid) const { return &verts[halfedges[heid].vid]; }
 	const face_t* faceFromHe(size_t heid) const { return &faces[halfedges[heid].fid]; }
 
+	// Returns pointer to new Half-Edges
+	void insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t heId);
 
+	void insertNewVertexInFace(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t fId);
 
 	//vector<vert_t> verts;
 	vector<he_t>   halfedges;
 	vector<face_t> faces;
 };
+
+inline void linkHalfEdge(HDS_HalfEdge& prev, HDS_HalfEdge& next)
+{
+	prev.next_offset = next.index - prev.index;
+	next.prev_offset = -prev.next_offset;
+}
+
+inline void linkEdgeLoop(HDS_HalfEdge& he1, HDS_HalfEdge& he2, HDS_HalfEdge& he3)
+{
+	linkHalfEdge(he1, he2);
+	linkHalfEdge(he2, he3);
+	linkHalfEdge(he3, he1);
+}
+
+inline void linkVertex(HDS_HalfEdge& he1, size_t ptId)
+{
+	he1.vid = ptId;
+}
+
+inline void linkFace(HDS_HalfEdge& he1, HDS_HalfEdge& he2, HDS_HalfEdge& he3, HDS_Face& face)
+{
+	// Link HE-F
+	he1.fid = he2.fid = he3.fid = face.index;
+	face.heid = he1.index;
+}
+
+// Given an original edge, two new HE
+inline void constructFace(
+	HDS_HalfEdge& newHE0, HDS_HalfEdge& newHE1, HDS_HalfEdge& newHE2, HDS_Face& face)
+{
+	// Link V-HE
+	/*newHE1.vid = oriHE.next()->vid;
+	newHE2.vid = newPtId;*/
+
+	// Link HE-HE
+	linkEdgeLoop(newHE0, newHE1, newHE2);
+
+	// Link HE-F
+	linkFace(newHE0, newHE1, newHE2, face);
+}
