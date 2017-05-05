@@ -38,7 +38,7 @@ public:
 	void insertIntoFace(size_t ptId, size_t fid);
 	void insertAtEdge(size_t ptId, size_t edgeId);
 
-	void legalizeEdge(std::vector<HDS_HalfEdge*>& dirtyEdges, size_t insertedPtId);
+	void legalizeEdge(std::vector<HDS_HalfEdge*>& frontierEdges, size_t insertedPtId);
 	//void legalizeEdge(HDS_HalfEdge& dirtyEdge, size_t insertedPtId);
 
 	void traversalPts();

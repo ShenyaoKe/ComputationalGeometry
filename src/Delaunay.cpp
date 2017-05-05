@@ -26,19 +26,10 @@ Delaunay::~Delaunay()
 {
 }
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-
 void Delaunay::initFirstTriangle()
 {
 	std::vector<HDS_HalfEdge>& hes = mMesh.halfedges;
-	std::vector<HDS_Face>& faces = mMesh.faces;
-	//mMesh.verts.reserve(mPoints.size() + 2);
+
 	mMesh.halfedges.reserve(3 * mPoints.size());
 
 	size_t leftMostPtId = 0;
@@ -73,7 +64,7 @@ void Delaunay::initFirstTriangle()
 void Delaunay::initBucket()
 {
 	size_t ptCount = mPoints.size();
-	//mBucket[0].reserve(ptCount - 1);
+
 	for (size_t i = 0; i < ptCount; i++)
 	{
 		if (i != mMesh.halfedges[2].vid)
@@ -119,7 +110,6 @@ void Delaunay::reBucketFlip(const HDS_HalfEdge& he)
 	//                 \   |
 	//                   \ |
 	//                     *
-
 	for (size_t dirtyPid : dirtyPts)
 	{
 		if (toLeft(vid0, vid1, dirtyPid))
@@ -205,7 +195,6 @@ void Delaunay::reBucketStarSplit(
 
 size_t Delaunay::onEdge(size_t ptId, size_t fid)
 {
-	const HDS_Face& face = mMesh.faces[fid];
 	const HDS_HalfEdge* he = mMesh.heFromFace(fid);
 	const HDS_HalfEdge* curHE = he;
 
@@ -289,13 +278,12 @@ void Delaunay::insertIntoFace(size_t vId, size_t fid)
 	HDS_HalfEdge* newHE = nullptr;
 	mMesh.insertNewVertexInFace(newHE, newFace, vId, fid);
 
-	//////////////////////////////////////////////////////////////////////////
 	// update bucket
 	reBucketStarSplit(newHE[0], newHE[2], newHE[4]);
 
 	// Legalize edges
-	std::vector<HDS_HalfEdge*> dirtyEdges{ newHE[0].next(), newHE[2].next(), newHE[4].next() };
-	legalizeEdge(dirtyEdges, vId);
+	std::vector<HDS_HalfEdge*> frontierEdges{ newHE[0].next(), newHE[2].next(), newHE[4].next() };
+	legalizeEdge(frontierEdges, vId);
 }
 
 void Delaunay::insertAtEdge(size_t vId, size_t heId)
@@ -309,17 +297,17 @@ void Delaunay::insertAtEdge(size_t vId, size_t heId)
 	reBucketFlip(newHE[5]);
 
 	// Legalize edges
-	std::vector<HDS_HalfEdge*> dirtyEdges{
+	std::vector<HDS_HalfEdge*> frontierEdges{
 		newHE[0].prev(), newHE[1].next(), newHE[3].next(), newHE[5].next() };
-	legalizeEdge(dirtyEdges, vId);
+	legalizeEdge(frontierEdges, vId);
 }
 
-void Delaunay::legalizeEdge(std::vector<HDS_HalfEdge*>& dirtyEdges, size_t insertedPtId)
+void Delaunay::legalizeEdge(std::vector<HDS_HalfEdge*>& frontierEdges, size_t insertedPtId)
 {
-	while (!dirtyEdges.empty())
+	while (!frontierEdges.empty())
 	{
-		HDS_HalfEdge* curHE = dirtyEdges.back();
-		dirtyEdges.pop_back();
+		HDS_HalfEdge* curHE = frontierEdges.back();
+		frontierEdges.pop_back();
 
 		if (curHE->isBoundary())
 		{
@@ -329,7 +317,7 @@ void Delaunay::legalizeEdge(std::vector<HDS_HalfEdge*>& dirtyEdges, size_t inser
 		size_t flipPid = curHEF->prev()->vid;
 
 		// If the vertex P on the opposite triangle lies in Circle(A, B, C)
-		// Flip edge BC, and re-bucket points in two triagles
+		// Flip edge BC, and re-bucket points in two triangles
 		//           A             A
 		//          / \           /|\
 		//         B---C  ---->  B | C
@@ -337,8 +325,8 @@ void Delaunay::legalizeEdge(std::vector<HDS_HalfEdge*>& dirtyEdges, size_t inser
 		//           P             P
 		if (inCircle(insertedPtId, curHE->vid, curHEF->vid, flipPid))
 		{
-			dirtyEdges.push_back(curHEF->prev());
-			dirtyEdges.push_back(curHEF->next());
+			frontierEdges.push_back(curHEF->prev());
+			frontierEdges.push_back(curHEF->next());
 
 			flipEdge(*curHE, *curHEF);
 			reBucketFlip(*curHE/*, *curHEF*/);
@@ -417,11 +405,11 @@ void Delaunay::extractTriangleIndices(std::vector<uint32_t>& outIndices) const
 		{
 			if (curHE->vid >= cVertexIdNegTwo)
 			{
-				vids[localVidIdx++] = mPoints.size() + (curHE->vid - cVertexIdNegTwo);
+				vids[localVidIdx++] = static_cast<uint32_t>(mPoints.size() + (curHE->vid - cVertexIdNegTwo));
 			}
 			else
 			{
-				vids[localVidIdx++] = curHE->vid;
+				vids[localVidIdx++] = static_cast<uint32_t>(curHE->vid);
 			}
 			curHE = curHE->next();
 		} while (curHE != he);

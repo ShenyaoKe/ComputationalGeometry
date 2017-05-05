@@ -1,5 +1,5 @@
-#include <GL/glew.h>	/* include GLEW and new version of GL on Windows */
-#include <GL/glfw3.h> /* GLFW helper library */
+#include "GL/glew.h"	/* include GLEW and new version of GL on Windows */
+#include "GL/glfw3.h" /* GLFW helper library */
 
 #include "Delaunay.h"
 #include "Utils.h"
@@ -149,8 +149,8 @@ int main(int argc, char* argv[])
 		glLinkProgram(shader_programme);
 	}
 
-	while (!glfwWindowShouldClose(window)) {
-		/* wipe the drawing surface clear */
+	while (!glfwWindowShouldClose(window))
+	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(shader_programme);
 		glBindVertexArray(vao);
@@ -166,9 +166,7 @@ int main(int argc, char* argv[])
 		glPointSize(10.0f);
 		glDrawArrays(GL_POINTS, 0, pts.size());
 
-		/* update other events like input handling */
 		glfwPollEvents();
-		/* put the stuff we've been drawing onto the display */
 		glfwSwapBuffers(window);
 
 

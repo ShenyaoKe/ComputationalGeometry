@@ -1,13 +1,11 @@
 #pragma once
 #include "common.h"
-//#include "Geometry/TriangleMesh.h"
 
-static const size_t cInvalidHDS = (size_t)-1;
+static const size_t cInvalidHDS = static_cast<size_t>(-1);
 
 /*
 * Vertex
 */
-/*
 class HDS_Vertex
 {
 public:
@@ -22,7 +20,7 @@ public:
 private:
 	static size_t uid;
 };
-*/
+
 
 /*
 * Half-Edge
@@ -179,10 +177,6 @@ inline void linkFace(HDS_HalfEdge& he1, HDS_HalfEdge& he2, HDS_HalfEdge& he3, HD
 inline void constructFace(
 	HDS_HalfEdge& newHE0, HDS_HalfEdge& newHE1, HDS_HalfEdge& newHE2, HDS_Face& face)
 {
-	// Link V-HE
-	/*newHE1.vid = oriHE.next()->vid;
-	newHE2.vid = newPtId;*/
-
 	// Link HE-HE
 	linkEdgeLoop(newHE0, newHE1, newHE2);
 
