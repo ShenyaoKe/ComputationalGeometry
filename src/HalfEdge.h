@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-static const size_t cInvalidHDS = static_cast<size_t>(-1);
+static const size_t cInvalidIndex = static_cast<size_t>(-1);
 
 /*
 * Vertex
@@ -9,7 +9,7 @@ static const size_t cInvalidHDS = static_cast<size_t>(-1);
 class HDS_Vertex
 {
 public:
-	HDS_Vertex() : index(uid++), pid(cInvalidHDS), heid(cInvalidHDS) {}
+	HDS_Vertex() : index(uid++), pid(cInvalidIndex), heid(cInvalidIndex) {}
 	~HDS_Vertex() {}
 
 	static void resetIndex() { uid = 0; }
@@ -31,7 +31,7 @@ public:
 	static void resetIndex() { uid = 0; }
 	static void matchIndexToSize(size_t	size) { uid = size; }
 
-	HDS_HalfEdge() : index(uid++), fid(cInvalidHDS), vid(cInvalidHDS)
+	HDS_HalfEdge() : index(uid++), fid(cInvalidIndex), vid(cInvalidIndex)
 		, prev_offset(0), next_offset(0), flip_offset(0) {}
 	~HDS_HalfEdge() {}
 
@@ -49,10 +49,18 @@ public:
 
 	bool isBoundary() const { return flip_offset == 0; }
 
+	// No self-loop edge
+	void setToInvalid() { prev_offset = next_offset = 0; fid = cInvalidIndex; }
+	bool isInvalid() const { return prev_offset == 0 || next_offset == 0 || fid == cInvalidIndex; }
+
 	void setFlip(HDS_HalfEdge* f_e)
 	{
 		flip_offset = f_e - this;
 		f_e->flip_offset = -flip_offset;
+	}
+	void breakFlip()
+	{
+		flip_offset = flip()->flip_offset = 0;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -78,12 +86,16 @@ class HDS_Face
 public:
 	static void resetIndex() { uid = 0; }
 
-	HDS_Face() : index(uid++), heid(cInvalidHDS) {}
+	HDS_Face() : index(uid++), heid(cInvalidIndex) {}
 	~HDS_Face() {}
 
 	// Get the connected half-edge id
 	// Explicit pointer access is handled by HDS_Mesh
 	size_t heID() const { return heid; }
+
+
+	void setToInvalid() { heid = cInvalidIndex; }
+	bool isInvalid() const { return heid == cInvalidIndex; }
 
 	// Member data
 	size_t index;

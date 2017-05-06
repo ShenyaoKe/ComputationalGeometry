@@ -10,6 +10,9 @@ public:
 	Delaunay(std::vector<Vector2f>& inPoints);
 	~Delaunay();
 
+	void extractTriangleIndices(std::vector<uint32_t>& outIndices) const;
+
+private:
 	void initFirstTriangle();
 	void initBucket();
 
@@ -44,7 +47,8 @@ public:
 	void traversalPts();
 	//bool keepInsertion();
 
-	void extractTriangleIndices(std::vector<uint32_t>& outIndices) const;
+	void finalizeHDS();
+
 
 private:
 	// Structure to store vertex position

@@ -19,6 +19,8 @@ Delaunay::Delaunay(std::vector<Vector2f>& inPoints)
 		//
 		//     update frontier
 		traversalPts();
+
+		finalizeHDS();
 	}
 }
 
@@ -214,7 +216,7 @@ size_t Delaunay::onEdge(size_t ptId, size_t fid)
 		}
 		curHE = curHE->next();
 	} while (curHE != he);
-	return cInvalidHDS;
+	return cInvalidIndex;
 }
 
 bool Delaunay::toLeft(size_t vId0, size_t vId1, size_t pId)
@@ -351,7 +353,7 @@ void Delaunay::traversalPts()
 
 		size_t faceId = mVertexToBucketMap[pointId];
 		size_t edgeId = onEdge(pointId, faceId);
-		if (edgeId == cInvalidHDS)
+		if (edgeId == cInvalidIndex)
 		{
 			// Insert into face
 			insertIntoFace(pointId, faceId);
@@ -360,6 +362,25 @@ void Delaunay::traversalPts()
 		{
 			// Insert on edge
 			insertAtEdge(pointId, edgeId);
+		}
+	}
+}
+
+void Delaunay::finalizeHDS()
+{
+	for (HDS_HalfEdge& he : mMesh.halfedges)
+	{
+		if (he.vid >= cVertexIdNegTwo && !he.isInvalid())
+		{
+			HDS_HalfEdge* curHE = &he;
+			mMesh.faces[he.fid].setToInvalid();
+			do
+			{
+				HDS_HalfEdge* nextHE = curHE->next();
+				curHE->setToInvalid();
+				curHE->breakFlip();
+				curHE = nextHE;
+			} while (curHE != &he);
 		}
 	}
 }
@@ -375,7 +396,7 @@ bool Delaunay::keepInsertion()
 
 	size_t faceId = mVertexToBucketMap[pointId];
 	size_t edgeId = onEdge(pointId, faceId);
-	if (edgeId == cInvalidHDS)
+	if (edgeId == cInvalidIndex)
 	{
 		// Insert into face
 		insertIntoFace(pointId, faceId);
@@ -394,29 +415,23 @@ void Delaunay::extractTriangleIndices(std::vector<uint32_t>& outIndices) const
 {
 	for (auto& f : mMesh.faces)
 	{
+		if (f.isInvalid())
+		{
+			continue;
+		}
+
 		const HDS_HalfEdge* he = mMesh.heFromFace(f.index);
 		const HDS_HalfEdge* curHE = he;
 
 		std::array<uint32_t, 3> vids;
 		size_t localVidIdx = 0;
 
-		bool invalidFace = false;
 		do
 		{
-			if (curHE->vid >= cVertexIdNegTwo)
-			{
-				vids[localVidIdx++] = static_cast<uint32_t>(mPoints.size() + (curHE->vid - cVertexIdNegTwo));
-			}
-			else
-			{
-				vids[localVidIdx++] = static_cast<uint32_t>(curHE->vid);
-			}
+			vids[localVidIdx++] = static_cast<uint32_t>(curHE->vid);
 			curHE = curHE->next();
 		} while (curHE != he);
-		if (invalidFace)
-		{
-			continue;
-		}
+
 		outIndices.insert(outIndices.end(), vids.begin(), vids.end());
 	}
 }
