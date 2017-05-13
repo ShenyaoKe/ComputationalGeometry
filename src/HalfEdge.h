@@ -67,8 +67,8 @@ public:
 	size_t index;
 	size_t fid;
 	size_t vid;
-	// Offset to index of previous/nex/flip edge
-	// previous/nex/flip edge doesn't exist
+	// Offset to index of previous/next/flip edge
+	// previous/next/flip edge doesn't exist
 	// when (previous/nex/flip == 0)
 	ptrdiff_t prev_offset, next_offset, flip_offset;
 
@@ -105,9 +105,6 @@ private:
 	static size_t uid;
 };
 
-//using vert_t = HDS_Vertex;
-using he_t = HDS_HalfEdge;
-using face_t = HDS_Face;
 /*
 * Mesh
 */
@@ -141,14 +138,14 @@ public:
 		std::cout << "#half edges = " << halfedges.size() << std::endl;
 	}
 
-	he_t* heFromFace(size_t fid) { return &halfedges[faces[fid].heid]; }
+	HDS_HalfEdge* heFromFace(size_t fid) { return &halfedges[faces[fid].heid]; }
 	//he_t* heFromVert(size_t vid) { return &halfedges[verts[vid].heid]; }
 	//vert_t* vertFromHe(size_t heid) { return &verts[halfedges[heid].vid]; }
-	face_t* faceFromHe(size_t heid) { return &faces[halfedges[heid].fid]; }
-	const he_t* heFromFace(size_t fid) const { return &halfedges[faces[fid].heid]; }
+	HDS_Face* faceFromHe(size_t heid) { return &faces[halfedges[heid].fid]; }
+	const HDS_HalfEdge* heFromFace(size_t fid) const { return &halfedges[faces[fid].heid]; }
 	//const he_t* heFromVert(size_t vid) const { return &halfedges[verts[vid].heid]; }
 	//const vert_t* vertFromHe(size_t heid) const { return &verts[halfedges[heid].vid]; }
-	const face_t* faceFromHe(size_t heid) const { return &faces[halfedges[heid].fid]; }
+	const HDS_Face* faceFromHe(size_t heid) const { return &faces[halfedges[heid].fid]; }
 
 	// Returns pointer to new Half-Edges
 	void insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t heId);
@@ -156,8 +153,8 @@ public:
 	void insertNewVertexInFace(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t fId);
 
 	//vector<vert_t> verts;
-	vector<he_t>   halfedges;
-	vector<face_t> faces;
+	vector<HDS_HalfEdge> halfedges;
+	vector<HDS_Face>     faces;
 };
 
 inline void linkHalfEdge(HDS_HalfEdge& prev, HDS_HalfEdge& next)

@@ -5,7 +5,7 @@ template <typename T>
 class Vector2
 {
 public:
-	Vector2() { x = y = 0; }
+	Vector2() : x(0), y(0) {}
 	Vector2(T _x, T _y) : x(_x), y(_y) {}
 	Vector2(const T val[2]) : x(val[0]), y(val[1]) {}
 

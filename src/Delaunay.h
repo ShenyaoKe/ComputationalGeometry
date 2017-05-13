@@ -57,7 +57,7 @@ private:
 	std::vector<size_t> mVertexToBucketMap;// Pt to Face
 
 	// Vertex positions
-	std::vector<Vector2f>& mPoints;
+	std::vector<Vector2f> mPoints;
 
 	// Triangle mesh represented by HalfEdge Data Structure to maintain mesh traversal
 	HDS_Mesh mMesh;
