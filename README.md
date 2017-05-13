@@ -1,1 +1,2 @@
-# DelaunayTriangulation
+# Computational Geometry
+## Delaunay Triangulation
