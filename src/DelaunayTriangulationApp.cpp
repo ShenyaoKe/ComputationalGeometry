@@ -11,6 +11,8 @@ static int winSize = 800;
 static GLuint vao;
 static GLuint vbo, ibo;
 
+static size_t pointCount = 20;
+
 void extractIndices(const Delaunay& mesh)
 {
 	ptIndices.clear();
@@ -38,13 +40,22 @@ void mouse_button_callback(GLFWwindow* /*window*/, int button, int action, int /
 
 int main(int argc, char* argv[])
 {
-	static std::vector<Vector2f> pts;
-	for (size_t i = 0; i < 20; i++)
+	if (argc == 2)
+	{
+		pointCount = std::atoi(argv[1]);
+	}
+	else
+	{
+		std::cout << "Generated point count: ";
+		std::cin >> pointCount;
+	}
+
+	std::vector<Vector2f> pts;
+	pts.reserve(pointCount + 2);
+	for (size_t i = 0; i < pointCount; i++)
 	{
 		pts.emplace_back(float(rand() % 100) / 50.0f - 1.0f, float(rand() % 100) / 50.0f - 1.0f);
 	}
-	pts.push_back(pts[0] * 0.3f + pts[2] * 0.7f);
-	pts.push_back(pts[0] * 0.1f + pts[1] * 0.3f + pts[6] * 0.6f);
 
 	std::vector<Vector2f> renderPts(pts.begin(), pts.end());
 	renderPts.emplace_back(1.0f, -100.0f);
@@ -72,9 +83,7 @@ int main(int argc, char* argv[])
 		"	frag_colour = vec4 (r, g, b, 1.0);"
 		"}";
 
-	/* GL shader objects for vertex and fragment shader [components] */
 	GLuint vert_shader, frag_shader;
-	/* GL shader program object [combined, to link] */
 	GLuint shader_programme;
 
 	/* start GL context and O/S window using the GLFW helper library */
@@ -83,7 +92,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	window = glfwCreateWindow(winSize, winSize, "Hello Triangle", nullptr, nullptr);
+	window = glfwCreateWindow(winSize, winSize, "Delauday Triangle", nullptr, nullptr);
 	if (!window) {
 		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 		glfwTerminate();
@@ -102,14 +111,8 @@ int main(int argc, char* argv[])
 	printf("Renderer: %s\n", renderer);
 	printf("OpenGL version supported %s\n", version);
 
-	/* tell GL to only draw onto a pixel if the shape is closer to the viewer
-	than anything already drawn at that pixel */
-	glDisable(GL_DEPTH_TEST); /* enable depth-testing */
-							 /* with LESS depth-testing interprets a smaller depth value as meaning "closer" */
-	//glDepthFunc(GL_LESS);
-	/* a vertex buffer object (VBO) is created here. this stores an array of
-	data on the graphics adapter's memory. in our case - the vertex points */
-
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	// Bind buffers
 	{
 		glGenBuffers(1, &vbo);

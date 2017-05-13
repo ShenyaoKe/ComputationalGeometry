@@ -4,11 +4,11 @@
 #include "HalfEdge.h"
 
 
-class Delaunay
+class DelaunayTriangulation
 {
 public:
-	Delaunay(std::vector<Vector2f>& inPoints);
-	~Delaunay();
+	DelaunayTriangulation(std::vector<Vector2f>& inPoints);
+	~DelaunayTriangulation();
 
 	void extractTriangleIndices(std::vector<uint32_t>& outIndices) const;
 
@@ -64,7 +64,6 @@ private:
 
 	//std::stack<size_t> mUnusedPtIds;
 
-	//static size_t sCurPtId;
 	const static size_t cVertexIdNegOne = static_cast<size_t>(-1);
 	const static size_t cVertexIdNegTwo = static_cast<size_t>(-2);
 };
