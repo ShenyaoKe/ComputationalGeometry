@@ -1,26 +1,28 @@
 #include "GL/glew.h"	/* include GLEW and new version of GL on Windows */
 #include "GL/glfw3.h" /* GLFW helper library */
 
-#include "DelaunayTriangulation.h"
+#include "ConvexHull.h"
 #include "Utils.h"
 
 static vector<uint32_t> ptIndices;
-static DelaunayTriangulation* delaunyMeshPtr = nullptr;
 
+static ConvexHull* convexHullPtr = nullptr;
 static int winSize = 800;
 static GLuint vao;
 static GLuint vbo, ibo;
 
-static size_t pointCount = 20;
+static size_t pointCount = 3;
 
-void extractIndices(const DelaunayTriangulation& mesh)
+void extractIndices(const ConvexHull& mesh)
 {
-	ptIndices.clear();
-	mesh.extractTriangleIndices(ptIndices);
+	mesh.extractLineSegmentIndices(ptIndices);
 	if (!ptIndices.empty())
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * ptIndices.size(), ptIndices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+					 sizeof(uint32_t) * ptIndices.size(),
+					 ptIndices.data(),
+					 GL_STATIC_DRAW);
 	}
 }
 
@@ -28,18 +30,17 @@ void mouse_button_callback(GLFWwindow* /*window*/, int button, int action, int /
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		if (delaunyMeshPtr)
+		if (convexHullPtr)
 		{
-			/*if (delaunyMeshPtr->keepInsertion())
-			{
-				extractIndices(*delaunyMeshPtr);
-			}*/
+			convexHullPtr->advance();
+			extractIndices(*convexHullPtr);
 		}
 	}
 }
 
 int main(int argc, char* argv[])
 {
+#if 0
 	if (argc == 2)
 	{
 		pointCount = std::atoi(argv[1]);
@@ -49,21 +50,24 @@ int main(int argc, char* argv[])
 		std::cout << "Generated point count: ";
 		std::cin >> pointCount;
 	}
+#else
+	pointCount = 1500;
+#endif
 
 	std::vector<Vector2f> pts;
-	pts.reserve(pointCount + 2);
+	pts.reserve(pointCount);
 	for (size_t i = 0; i < pointCount; i++)
 	{
-		pts.emplace_back(float(rand() % 100) / 50.0f - 1.0f, float(rand() % 100) / 50.0f - 1.0f);
+		pts.emplace_back(float(rand() % 90 + 5) / 50.0f - 1.0f,
+						 float(rand() % 90 + 5) / 50.0f - 1.0f);
 	}
 
-	std::vector<Vector2f> renderPts(pts.begin(), pts.end());
-	renderPts.emplace_back(1.0f, -100.0f);
-	renderPts.emplace_back(1.0f, 100.0f);
+	//std::vector<Vector2f> renderPts(pts.begin(), pts.end());
 
-	DelaunayTriangulation delaunayTriMesh(pts);
-	delaunyMeshPtr = &delaunayTriMesh;
-	delaunayTriMesh.extractTriangleIndices(ptIndices);
+	ConvexHull convexHull(pts);
+	convexHullPtr = &convexHull;
+	convexHull.process();
+	convexHull.extractLineSegmentIndices(ptIndices);
 
 	GLFWwindow *window = nullptr;
 	const GLubyte *renderer;
@@ -77,23 +81,22 @@ int main(int argc, char* argv[])
 	const char *fragment_shader = "#version 410\n"
 		"out vec4 frag_colour;"
 		"void main () {"
-		"	float r = (gl_PrimitiveID % 13 + 1) / 13.0f;"
-		"	float g = (gl_PrimitiveID % 7 + 1) / 7.0f;"
-		"	float b = (gl_PrimitiveID % 5 + 1) / 5.0f;"
-		"	frag_colour = vec4 (r, g, b, 1.0);"
+		"	frag_colour = vec4 (1.0, 1, 1, 1.0);"
 		"}";
 
 	GLuint vert_shader, frag_shader;
 	GLuint shader_programme;
 
 	/* start GL context and O/S window using the GLFW helper library */
-	if (!glfwInit()) {
+	if (!glfwInit())
+	{
 		fprintf(stderr, "ERROR: could not start GLFW3\n");
 		return 1;
 	}
 
-	window = glfwCreateWindow(winSize, winSize, "Delauday Triangle", nullptr, nullptr);
-	if (!window) {
+	window = glfwCreateWindow(winSize, winSize, "Convex Hull", nullptr, nullptr);
+	if (!window)
+	{
 		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 		glfwTerminate();
 		return 1;
@@ -117,11 +120,11 @@ int main(int argc, char* argv[])
 	{
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		if (!renderPts.empty())
+		if (pointCount > 0)
 		{
 			glBufferData(GL_ARRAY_BUFFER,
-						 sizeof(Vector2f) * renderPts.size(),
-						 renderPts.data(),
+						 sizeof(Vector2f) * pointCount,
+						 convexHull.data(),
 						 GL_STATIC_DRAW);
 		}
 
@@ -164,21 +167,18 @@ int main(int argc, char* argv[])
 		glUseProgram(shader_programme);
 		glBindVertexArray(vao);
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		glDisable(GL_CULL_FACE);
+		//glCullFace(GL_BACK);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glDrawElements(GL_TRIANGLES, ptIndices.size(), GL_UNSIGNED_INT, 0);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDrawElements(GL_LINES, ptIndices.size(), GL_UNSIGNED_INT, 0);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, renderPts.size());
+		glPointSize(5.0f);
+		glDrawArrays(GL_POINTS, 0, pointCount);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);
-
-
 	}
 
 	/* close GL context and any other GLFW resources */

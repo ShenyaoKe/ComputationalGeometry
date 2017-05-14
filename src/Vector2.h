@@ -112,3 +112,11 @@ inline Vector2<T> normalize(const Vector2<T> &v)
 {
 	return v / v.length();
 }
+
+template <typename T>
+inline bool toLeft(const Vector2<T> &vecOrigin,
+			const Vector2<T> &vecTarget,
+			const Vector2<T> &targetPoint)
+{
+	return cross(vecTarget - vecOrigin, targetPoint - vecOrigin) >= 0;
+}

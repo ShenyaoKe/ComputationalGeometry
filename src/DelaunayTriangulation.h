@@ -3,7 +3,6 @@
 #include "Vector2.h"
 #include "HalfEdge.h"
 
-
 class DelaunayTriangulation
 {
 public:
