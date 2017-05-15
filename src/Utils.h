@@ -33,4 +33,11 @@ inline bool inCircle(const Vector2f& Va, const Vector2f& Vb, const Vector2f& Vc,
 	return detResult > 0;
 }
 
+// Range (-1, 1)
+inline float randFloatNum(size_t range)
+{
+	size_t shrink = std::max(range / 10, 2llu);
+	return float(rand() % (range - shrink) + shrink / 2) / range * 2.0f - 1.0f;
+};
+
 }

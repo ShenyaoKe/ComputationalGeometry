@@ -14,5 +14,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cassert>
+#include <memory>
+#include <random>
 
 using namespace std;

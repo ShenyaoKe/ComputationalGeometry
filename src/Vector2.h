@@ -74,8 +74,9 @@ public:
 	template <typename U>
 	Vector2<T> &operator/=(U f)
 	{
-		float inv = (float)1 / f;
-		x *= inv; y *= inv;
+		float inv = 1.0f / f;
+		x *= inv;
+		y *= inv;
 		return *this;
 	}
 
@@ -111,12 +112,4 @@ template <typename T>
 inline Vector2<T> normalize(const Vector2<T> &v)
 {
 	return v / v.length();
-}
-
-template <typename T>
-inline bool toLeft(const Vector2<T> &vecOrigin,
-			const Vector2<T> &vecTarget,
-			const Vector2<T> &targetPoint)
-{
-	return cross(vecTarget - vecOrigin, targetPoint - vecOrigin) >= 0;
 }
