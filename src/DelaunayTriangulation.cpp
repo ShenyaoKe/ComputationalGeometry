@@ -30,7 +30,7 @@ DelaunayTriangulation::~DelaunayTriangulation()
 
 void DelaunayTriangulation::initFirstTriangle()
 {
-	std::vector<HDS_HalfEdge>& hes = mMesh.halfedges;
+	std::vector<HDS::HalfEdge>& hes = mMesh.halfedges;
 
 	mMesh.halfedges.reserve(3 * mPoints.size());
 
@@ -83,9 +83,9 @@ void DelaunayTriangulation::reBucketPoint(size_t vid, size_t fid)
 	mVertexToBucketMap[vid] = fid;
 }
 
-void DelaunayTriangulation::reBucketFlip(const HDS_HalfEdge& he)
+void DelaunayTriangulation::reBucketFlip(const HDS::HalfEdge& he)
 {
-	const HDS_HalfEdge& hef = *he.flip();
+	const HDS::HalfEdge& hef = *he.flip();
 	size_t fid0 = he.fid;
 	size_t fid1 = hef.fid;
 	size_t vid0 = he.vid;
@@ -126,7 +126,7 @@ void DelaunayTriangulation::reBucketFlip(const HDS_HalfEdge& he)
 }
 
 void DelaunayTriangulation::reBucketStarSplit(
-	const HDS_HalfEdge& he0, const HDS_HalfEdge& he1, const HDS_HalfEdge& he2)
+	const HDS::HalfEdge& he0, const HDS::HalfEdge& he1, const HDS::HalfEdge& he2)
 {
 	size_t vId = he1.vid;
 	size_t vid0 = he0.next()->vid;
@@ -197,8 +197,8 @@ void DelaunayTriangulation::reBucketStarSplit(
 
 size_t DelaunayTriangulation::onEdge(size_t ptId, size_t fid)
 {
-	const HDS_HalfEdge* he = mMesh.heFromFace(fid);
-	const HDS_HalfEdge* curHE = he;
+	const HDS::HalfEdge* he = mMesh.heFromFace(fid);
+	const HDS::HalfEdge* curHE = he;
 
 	do
 	{
@@ -258,12 +258,12 @@ bool DelaunayTriangulation::inCircle(size_t triP0, size_t triP1, size_t triP2, s
 	return Utils::inCircle(mPoints[triP0], mPoints[triP1], mPoints[triP2], mPoints[targ]);
 }
 
-void DelaunayTriangulation::flipEdge(HDS_HalfEdge& he, HDS_HalfEdge& hef)
+void DelaunayTriangulation::flipEdge(HDS::HalfEdge& he, HDS::HalfEdge& hef)
 {
-	HDS_HalfEdge& he1 = *he.next();
-	HDS_HalfEdge& he2 = *he.prev();
-	HDS_HalfEdge& he3 = *hef.next();
-	HDS_HalfEdge& he4 = *hef.prev();
+	HDS::HalfEdge& he1 = *he.next();
+	HDS::HalfEdge& he2 = *he.prev();
+	HDS::HalfEdge& he3 = *hef.next();
+	HDS::HalfEdge& he4 = *hef.prev();
 
 	he.vid = he2.vid;
 	hef.vid = he4.vid;
@@ -276,22 +276,24 @@ void DelaunayTriangulation::flipEdge(HDS_HalfEdge& he, HDS_HalfEdge& hef)
 
 void DelaunayTriangulation::insertIntoFace(size_t vId, size_t fid)
 {
-	HDS_Face* newFace = nullptr;
-	HDS_HalfEdge* newHE = nullptr;
+	HDS::Face* newFace = nullptr;
+	HDS::HalfEdge* newHE = nullptr;
 	mMesh.insertNewVertexInFace(newHE, newFace, vId, fid);
 
 	// update bucket
 	reBucketStarSplit(newHE[0], newHE[2], newHE[4]);
 
 	// Legalize edges
-	std::vector<HDS_HalfEdge*> frontierEdges{ newHE[0].next(), newHE[2].next(), newHE[4].next() };
+	std::vector<HDS::HalfEdge*> frontierEdges{
+		newHE[0].next(), newHE[2].next(), newHE[4].next()
+	};
 	legalizeEdge(frontierEdges, vId);
 }
 
 void DelaunayTriangulation::insertAtEdge(size_t vId, size_t heId)
 {
-	HDS_Face* newFace = nullptr;
-	HDS_HalfEdge* newHE = nullptr;
+	HDS::Face* newFace = nullptr;
+	HDS::HalfEdge* newHE = nullptr;
 	mMesh.insertNewVertexOnEdge(newHE, newFace, vId, heId);
 
 	// re-bucket
@@ -299,23 +301,24 @@ void DelaunayTriangulation::insertAtEdge(size_t vId, size_t heId)
 	reBucketFlip(newHE[5]);
 
 	// Legalize edges
-	std::vector<HDS_HalfEdge*> frontierEdges{
+	std::vector<HDS::HalfEdge*> frontierEdges{
 		newHE[0].prev(), newHE[1].next(), newHE[3].next(), newHE[5].next() };
 	legalizeEdge(frontierEdges, vId);
 }
 
-void DelaunayTriangulation::legalizeEdge(std::vector<HDS_HalfEdge*>& frontierEdges, size_t insertedPtId)
+void DelaunayTriangulation::legalizeEdge(std::vector<HDS::HalfEdge*>& frontierEdges,
+										 size_t insertedPtId)
 {
 	while (!frontierEdges.empty())
 	{
-		HDS_HalfEdge* curHE = frontierEdges.back();
+		HDS::HalfEdge* curHE = frontierEdges.back();
 		frontierEdges.pop_back();
 
 		if (curHE->isBoundary())
 		{
 			continue;
 		}
-		HDS_HalfEdge* curHEF = curHE->flip();
+		HDS::HalfEdge* curHEF = curHE->flip();
 		size_t flipPid = curHEF->prev()->vid;
 
 		// If the vertex P on the opposite triangle lies in Circle(A, B, C)
@@ -363,15 +366,15 @@ void DelaunayTriangulation::traversalPts()
 
 void DelaunayTriangulation::finalizeHDS()
 {
-	for (HDS_HalfEdge& he : mMesh.halfedges)
+	for (HDS::HalfEdge& he : mMesh.halfedges)
 	{
 		if (he.vid >= cVertexIdNegTwo && !he.isInvalid())
 		{
-			HDS_HalfEdge* curHE = &he;
+			HDS::HalfEdge* curHE = &he;
 			mMesh.faces[he.fid].setToInvalid();
 			do
 			{
-				HDS_HalfEdge* nextHE = curHE->next();
+				HDS::HalfEdge* nextHE = curHE->next();
 				curHE->setToInvalid();
 				curHE->breakFlip();
 				curHE = nextHE;
@@ -415,8 +418,8 @@ void DelaunayTriangulation::extractTriangleIndices(std::vector<uint32_t>& outInd
 			continue;
 		}
 
-		const HDS_HalfEdge* he = mMesh.heFromFace(f.index);
-		const HDS_HalfEdge* curHE = he;
+		const HDS::HalfEdge* he = mMesh.heFromFace(f.index);
+		const HDS::HalfEdge* curHE = he;
 
 		std::array<uint32_t, 3> vids;
 		size_t localVidIdx = 0;

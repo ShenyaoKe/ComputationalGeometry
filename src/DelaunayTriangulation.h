@@ -17,10 +17,10 @@ private:
 
 	void reBucketPoint(size_t vid, size_t fid);
 	// re-bucket when flipping edge
-	void reBucketFlip(const HDS_HalfEdge& he/*, const HDS_HalfEdge& hef*/);
+	void reBucketFlip(const HDS::HalfEdge& he/*, const HDS_HalfEdge& hef*/);
 	// re-bucket when split by new edge
 	// TODO: Rmove this use above
-	void reBucketStarSplit(/*const size_t oriFid,*/ const HDS_HalfEdge& he0, const HDS_HalfEdge& he1, const HDS_HalfEdge& he2);
+	void reBucketStarSplit(/*const size_t oriFid,*/ const HDS::HalfEdge& he0, const HDS::HalfEdge& he1, const HDS::HalfEdge& he2);
 	//void reBucketSplit(const size_t fid, const HDS_HalfEdge& splitHE);
 
 	// Returns heId if on edge
@@ -35,12 +35,12 @@ private:
 
 	bool inCircle(size_t triP0, size_t triP1, size_t triP2, size_t targ);
 
-	void flipEdge(HDS_HalfEdge& he, HDS_HalfEdge& hef);
+	void flipEdge(HDS::HalfEdge& he, HDS::HalfEdge& hef);
 
 	void insertIntoFace(size_t ptId, size_t fid);
 	void insertAtEdge(size_t ptId, size_t edgeId);
 
-	void legalizeEdge(std::vector<HDS_HalfEdge*>& frontierEdges, size_t insertedPtId);
+	void legalizeEdge(std::vector<HDS::HalfEdge*>& frontierEdges, size_t insertedPtId);
 	//void legalizeEdge(HDS_HalfEdge& dirtyEdge, size_t insertedPtId);
 
 	void traversalPts();
@@ -59,7 +59,7 @@ private:
 	std::vector<Vector2f> mPoints;
 
 	// Triangle mesh represented by HalfEdge Data Structure to maintain mesh traversal
-	HDS_Mesh mMesh;
+	HDS::Mesh mMesh;
 
 	//std::stack<size_t> mUnusedPtIds;
 

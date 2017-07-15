@@ -1,10 +1,16 @@
 #include "HalfEdge.h"
 
-//size_t HDS_Vertex::uid = 0;
-size_t HDS_HalfEdge::uid = 0;
-size_t HDS_Face::uid = 0;
+namespace HDS
+{
 
-void HDS_Mesh::insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t heId)
+size_t Vertex::uid = 0;
+size_t HalfEdge::uid = 0;
+size_t Face::uid = 0;
+
+void Mesh::insertNewVertexOnEdge(HalfEdge*& outNewHE,
+								 Face*& outNewFace,
+								 size_t vId,
+								 size_t heId)
 {
 	size_t newHeId = halfedges.size();
 	size_t newFaceId = faces.size();
@@ -16,13 +22,13 @@ void HDS_Mesh::insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewF
 	outNewFace = &faces[newFaceId];
 
 	// Assume mesh is triangulated
-	HDS_HalfEdge& he = halfedges[heId];
-	HDS_HalfEdge& hef = *he.flip();
+	HalfEdge& he = halfedges[heId];
+	HalfEdge& hef = *he.flip();
 
-	HDS_HalfEdge& oriHe0 = *he.next();
-	HDS_HalfEdge& oriHe1 = *oriHe0.next();
-	HDS_HalfEdge& oriHe2 = *hef.next();
-	HDS_HalfEdge& oriHe3 = *oriHe2.next();
+	HalfEdge& oriHe0 = *he.next();
+	HalfEdge& oriHe1 = *oriHe0.next();
+	HalfEdge& oriHe2 = *hef.next();
+	HalfEdge& oriHe3 = *oriHe2.next();
 
 	outNewHE[0].vid = oriHe1.vid;
 	outNewHE[2].vid = oriHe2.vid;
@@ -34,10 +40,10 @@ void HDS_Mesh::insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewF
 	outNewHE[2].setFlip(outNewHE + 3);
 	outNewHE[4].setFlip(outNewHE + 5);
 
-	HDS_Face& face0 = faces[he.fid];
-	HDS_Face& face1 = faces[newFaceId];
-	HDS_Face& face2 = faces[newFaceId + 1];
-	HDS_Face& face3 = faces[hef.fid];
+	Face& face0 = faces[he.fid];
+	Face& face1 = faces[newFaceId];
+	Face& face2 = faces[newFaceId + 1];
+	Face& face3 = faces[hef.fid];
 
 	constructFace(oriHe0, outNewHE[0], he, face0);
 	constructFace(oriHe1, outNewHE[2], outNewHE[1], face1);
@@ -45,8 +51,10 @@ void HDS_Mesh::insertNewVertexOnEdge(HDS_HalfEdge*& outNewHE, HDS_Face*& outNewF
 	constructFace(oriHe3, hef, outNewHE[5], face3);
 }
 
-void HDS_Mesh::insertNewVertexInFace(
-	HDS_HalfEdge*& outNewHE, HDS_Face*& outNewFace, size_t vId, size_t fId)
+void Mesh::insertNewVertexInFace(HalfEdge*& outNewHE,
+								 Face*& outNewFace,
+								 size_t vId,
+								 size_t fId)
 {
 	size_t newEdgeId = halfedges.size();
 	size_t newFaceId = faces.size();
@@ -57,9 +65,9 @@ void HDS_Mesh::insertNewVertexInFace(
 	outNewHE = &halfedges[newEdgeId];
 	outNewFace = &faces[newFaceId];
 
-	HDS_HalfEdge& oriHe0 = *heFromFace(fId);
-	HDS_HalfEdge& oriHe1 = *oriHe0.next();
-	HDS_HalfEdge& oriHe2 = *oriHe1.next();
+	HalfEdge& oriHe0 = *heFromFace(fId);
+	HalfEdge& oriHe1 = *oriHe0.next();
+	HalfEdge& oriHe2 = *oriHe1.next();
 
 	// Link face loop
 	outNewHE[1].vid = oriHe1.vid;
@@ -74,4 +82,6 @@ void HDS_Mesh::insertNewVertexInFace(
 	outNewHE[1].setFlip(outNewHE + 2);
 	outNewHE[3].setFlip(outNewHE + 4);
 	outNewHE[5].setFlip(outNewHE);
+}
+
 }
